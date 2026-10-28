@@ -1,8 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-10-28)
 
-- **Codex support:** Floorplan now installs as a Codex plugin too (`codex plugin marketplace add haydenschmitty/floorplan`), with the same skill, map and Health check. In Codex, the map's Ask bar runs your own Codex on your ChatGPT sign-in, read-only and kept out of your Codex history, and "Fix with Codex" prompts are ready to paste. The map server uses whichever agent built the map, and falls back to the other one. See [Floorplan in Codex](docs/codex.md).
+- **Works in Codex:** Floorplan is now a Codex plugin too, with the same skill, map and Health check, on your ChatGPT sign-in and with no API keys. Install it from the Codex app with no terminal: **Plugins → Add a marketplace →** `haydenschmitty/floorplan`, then install Floorplan. See [Floorplan in Codex](docs/codex.md).
+- **Ask through Codex:** in a map made with Codex, the Ask bar runs your own Codex on your computer, in its read-only sandbox, and these runs stay out of your Codex history. Follow-up questions keep the conversation. The map's server uses whichever agent made the map, and falls back to the other one if only that one is installed (`--engine claude|codex` picks one).
+- **Says who it's working with:** the Ask bar, the Health panel's "Fix with Claude" or "Fix with Codex" prompts, and request-a-flow all name the agent that made the map. In Codex, Floorplan leaves your project's notes alone (there's no Codex equivalent of the personal `CLAUDE.local.md`).
+- **Docs** cover both apps throughout, with a new [Floorplan in Codex](docs/codex.md) guide.
 
 ## 0.1.5 (2026-10-28)
 
