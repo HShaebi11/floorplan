@@ -18,7 +18,7 @@ In scope:
 - anything that could leak secrets or source code;
 - anything that writes outside the project's `floorplan/` folder and `CLAUDE.local.md`.
 
-Out of scope: issues in Claude Code itself, which go to [Anthropic](https://www.anthropic.com/responsible-disclosure-policy).
+Out of scope: issues in Claude Code itself, which go to [Anthropic](https://www.anthropic.com/responsible-disclosure-policy), and in Codex itself, which go to [OpenAI](https://help.openai.com/en/articles/6653653-how-to-report-security-vulnerabilities-to-openai).
 
 ## Supported versions
 
