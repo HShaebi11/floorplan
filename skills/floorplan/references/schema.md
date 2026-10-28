@@ -80,6 +80,7 @@ Good candidates:
 - publisher → queue → consumer (`queue` / `event`)
 - webhooks coming in from third parties (`http`, from the external node to the handler)
 - cron/scheduler → job (`call`)
+- Firebase background functions (schedules, Firestore/Storage/Pub/Sub triggers, from the scan's FIREBASE FUNCTIONS list) → a `worker` node; link the collection or topic that triggers them (`event`)
 - calls through env-configured base URLs that the matcher missed (`http`)
 
 ## annotations

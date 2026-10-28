@@ -31,6 +31,10 @@ const FILE_EXT_TAIL = /\.(png|jpe?g|gif|svg|ico|webp|css|js|mjs|ts|tsx|json|html
 function normalizeCallLiteral(raw) {
   let s = raw.trim();
   let host = null;
+  // a Firebase function's own address (https://us-central1-<project>.cloudfunctions.net/signDocument) is
+  // this app's backend, not an outside service
+  const fn = /^https?:\/\/[^/\s]*\.cloudfunctions\.net(\/.*)$/i.exec(s);
+  if (fn) s = fn[1];
   const abs = /^https?:\/\/([^/${}\s]+)(.*)$/i.exec(s);
   if (abs) { host = abs[1].toLowerCase(); s = abs[2] || '/'; }
   // leading interpolations: ${API_BASE}/x, {BASE_URL}/x
@@ -135,7 +139,11 @@ function extractJs(src, filePath) {
   const imports = [];
   for (const m of all(/(?:^|[;\n}])\s*import\s+(?!\()((?:type\s+)?[^'";]*?)\s+from\s+["']([^"'\n]+)["']/g, code)) imports.push({ spec: m[2], ...parseImportClause(m[1]), line: at(m.index) });
   for (const m of all(/(?:^|[;\n])\s*import\s+["']([^"'\n]+)["']/g, code)) imports.push({ spec: m[1], names: [], line: at(m.index) });
-  for (const m of all(/\bexport\s+(?:type\s+)?(\*(?:\s+as\s+\w+)?|\{[^}]*\})\s+from\s+["']([^"'\n]+)["']/g, code)) imports.push({ spec: m[2], names: m[1].startsWith('{') ? parseImportClause(m[1]).names : [], line: at(m.index), reexport: true });
+  for (const m of all(/\bexport\s+(?:type\s+)?(\*(?:\s+as\s+\w+)?|\{[^}]*\})\s+from\s+["']([^"'\n]+)["']/g, code)) {
+    // `export { a as b } from` → exported { b: 'a' }, the names this file passes on
+    const clause = m[1].startsWith('{') ? parseImportClause(m[1]) : null;
+    imports.push({ spec: m[2], names: clause ? clause.names : [], ...(clause ? { exported: clause.locals } : {}), line: at(m.index), reexport: true });
+  }
   for (const m of all(/\brequire\(\s*["']([^"'\n]+)["']\s*\)/g, code)) {
     // `const usersRouter = require('./users')` / `const { a, b: c } = require(…)` bind local names
     const before = code.slice(code.lastIndexOf('\n', m.index) + 1, m.index);
@@ -194,12 +202,93 @@ function extractJs(src, filePath) {
     for (const method of methods.length ? methods : ['ANY']) routes.push({ method, path: p, var: null, line: 1, framework: 'next' });
   }
 
+  const triggers = /firebase-functions/.test(code) ? firebaseFunctions(code, at, routes, mounts) : [];
+
   const serverLine = /\b\w+\.(use|route)\(\s*["'`]\/|\b(?:app|server|fastify|hono|routes?|router|[a-z]+Router)\.(?:get|post|put|patch|delete|all|options|head)\(\s*["'`]\//;
   const { calls, hosts } = extractCalls(code, at, { skip: serverLine });
   const seenCall = new Set(calls.map((c) => `${c.line}|${c.path}`));
   for (const c of wrapperCalls(code, at)) if (!seenCall.has(`${c.line}|${c.path}`)) calls.push(c);
-  return { imports, symbols, routes, mounts, calls, hosts };
+  const callables = /\bhttpsCallable\b/.test(code) ? callableCalls(code, at) : { calls: [], wrappers: [] };
+  calls.push(...callables.calls);
+  return { imports, symbols, routes, mounts, calls, hosts, ...(triggers.length ? { triggers } : {}), ...(callables.wrappers.length ? { callableWrappers: callables.wrappers } : {}) };
 }
+
+// ---------- Firebase Cloud Functions ----------
+
+// `export const approveItem = onCall(…)`, `exports.sign = functions.region('eu').https.onRequest(…)`,
+// `export const nightly = onSchedule('every day 03:00', …)`: the exported name, the chain before the
+// trigger (v1 style `functions.firestore.document('x')`), and the trigger itself
+const FIREBASE_FN = /(?:\bexport\s+(?:const|let|var)\s+|(?:^|[;\n])[ \t]*(?:const|let|var)\s+|\b(?:module\.)?exports\.)([A-Za-z_$][\w$]*)\s*(?::[^=\n]*)?=\s*((?:[A-Za-z_$][\w$]*(?:\([^()]*\))?\s*\.\s*)*)((?:on|before)[A-Z]\w*)\s*(?:<[^;]{0,300}?>)?\s*\(/g;
+const FIRST_STRING = /["'`]([^"'`\n]{1,120})["'`]/;
+
+/**
+ * Callable and onRequest functions become endpoints named after their export (CALL /approveItem,
+ * ANY /signDocument); Firebase serves an Express app passed to onRequest under the function's name,
+ * so that becomes a mount. Every other trigger (schedules, Firestore, Storage, Pub/Sub, Auth) is a
+ * background job, returned for the scan summary.
+ */
+function firebaseFunctions(code, at, routes, mounts) {
+  const triggers = [];
+  for (const m of code.matchAll(FIREBASE_FN)) {
+    const [, name, chain, on] = m;
+    const line = at(m.index + m[0].indexOf(name));
+    const args = code.slice(m.index + m[0].length, m.index + m[0].length + 300);
+    if (on === 'onCall' || on === 'onCallGenkit' || on === 'onRequest') {
+      routes.push({ method: on === 'onRequest' ? 'ANY' : 'CALL', path: '/' + name, var: null, line, framework: 'firebase', handler: name });
+      const app = on === 'onRequest' && /^\s*(?:\{[^{}]*\}\s*,\s*)?([A-Za-z_$][\w$]*)\s*\)/.exec(args)?.[1];
+      if (app) mounts.push({ prefix: '/' + name, var: app, line });
+      continue;
+    }
+    // v1 triggers name the provider in the chain (functions.pubsub.schedule(…).onRun); v2 ones are named for it
+    const provider = /\b(pubsub|firestore|storage|auth|database|tasks|analytics|remoteConfig|testLab)\b/.exec(chain)?.[1];
+    if (chain ? !provider : !/^(onSchedule|onDocument|onObject|onMessagePublished|onValue|onTaskDispatched|onCustomEventPublished|on\w*Alert|onTestMatrix|onConfigUpdated|before[A-Z])/.test(on)) continue;
+    // what it runs on: the last string in the chain (after any region), else the first argument
+    const what = [...chain.matchAll(new RegExp(FIRST_STRING, 'g'))].pop()?.[1] || FIRST_STRING.exec(/^[^)]*/.exec(args)[0])?.[1] || null;
+    triggers.push({ name, on: provider ? `${provider}.${on}` : on, ...(what ? { what } : {}), line });
+  }
+  return triggers;
+}
+
+// httpsCallable(functions, 'approveItem'), httpsCallable<Req, Res>(getFunctions(app), 'x') and the
+// older functions.httpsCallable('x'); the generic arguments may span lines
+const CALLABLE = /\bhttpsCallable\s*(?:<[^;]{0,300}?>)?\s*\(\s*(?:[^,()'"`]*(?:\([^()]*\))?\s*,\s*)?(["'`])([\w-]+)\1/g;
+const DEFS = /(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)|\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:<[^>]*>\s*)?\(([^)]*)\)\s*(?::\s*[^=]+?)?=>/g;
+/** A callable's name as a path: grouped functions deploy as `group-name`, so 'items-approve' → /items/approve. */
+const callablePath = (name) => '/' + name.split('-').filter(Boolean).join('/');
+
+/**
+ * Calls to Firebase callable functions, by name, plus helpers that wrap httpsCallable
+ * (`const call = (name, data) => httpsCallable(functions, name)(data)`) and their same-file uses.
+ * The helpers' names are returned too, so scan.mjs can follow uses in the files that import them.
+ */
+function callableCalls(code, at) {
+  const calls = [...code.matchAll(CALLABLE)].map((m) => ({ path: callablePath(m[2]), method: 'CALL', line: at(m.index) }));
+  const wrappers = [];
+  for (const m of code.matchAll(DEFS)) {
+    const name = m[1] || m[3];
+    const p0 = /^[A-Za-z_$][\w$]*/.exec((m[2] ?? m[4]).trim())?.[0];
+    if (!p0) continue;
+    const body = code.slice(m.index + m[0].length, m.index + m[0].length + 400);
+    if (!new RegExp(`\\bhttpsCallable\\s*(?:<[^;]{0,300}?>)?\\s*\\(\\s*(?:[^,()'"\`]*(?:\\([^()]*\\))?\\s*,\\s*)?${p0}\\s*[,)]`).test(body)) continue;
+    wrappers.push(name);
+    calls.push(...callsVia(code, name, at(m.index)));
+  }
+  return { calls, wrappers };
+}
+
+/** Uses of a callable helper: `callFunction('approveItem', data)` → CALL /approveItem. */
+function callsVia(code, name, skipLine = 0) {
+  const out = [];
+  const re = new RegExp(`(?<![\\w$.])${name.replace(/\$/g, '\\$')}\\s*(?:<[^;]{0,300}?>)?\\s*\\(\\s*(["'\`])([\\w-]+)\\1`, 'g');
+  const at = lineIndex(code);
+  for (const m of code.matchAll(re)) {
+    const line = at(m.index);
+    if (line !== skipLine) out.push({ path: callablePath(m[2]), method: 'CALL', line });
+  }
+  return out;
+}
+/** The same, in another file that imports the helper (under its local name there). */
+export const callableCallsVia = (src, localName) => callsVia(stripCStyle(src), localName);
 
 /**
  * Calls through a helper defined in the same file that adds a prefix and fetches, e.g.
@@ -210,8 +299,7 @@ function extractJs(src, filePath) {
  */
 function wrapperCalls(code, at) {
   const out = [];
-  const defs = /(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)|\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:<[^>]*>\s*)?\(([^)]*)\)\s*(?::\s*[^=]+?)?=>/g;
-  for (const m of code.matchAll(defs)) {
+  for (const m of code.matchAll(DEFS)) {
     const name = m[1] || m[3];
     const params = (m[2] ?? m[4]).split(',').map((p) => p.trim()).filter(Boolean);
     const pnames = params.map((p) => /^[A-Za-z_$][\w$]*/.exec(p)?.[0]);
@@ -482,9 +570,12 @@ function addDocs(src, lang, r) {
     if (d) s.doc = d;
   }
   // A route's handler is the first declaration after it (decorator-style frameworks).
-  const syms = (r.symbols || []).slice().sort((a, b) => a.line - b.line);
+  // (a Firebase function's export isn't the handler of the Express routes above it)
+  const fbNames = new Set((r.routes || []).filter((rt) => rt.framework === 'firebase').map((rt) => rt.handler));
+  const syms = (r.symbols || []).filter((s) => !fbNames.has(s.name)).sort((a, b) => a.line - b.line);
   for (const rt of r.routes || []) {
     if (rt.framework === 'next') { rt.handler = rt.method; continue; }
+    if (rt.framework === 'firebase') { const d = r.symbols.find((s) => s.name === rt.handler)?.doc || commentBefore(lines, rt.line - 1); if (d) rt.doc = d; continue; }
     const h = syms.find((s) => s.line >= rt.line && s.line - rt.line <= 12);
     if (h) { rt.handler = h.name; if (h.doc) rt.doc = h.doc; }
     else if (lang === 'python') {

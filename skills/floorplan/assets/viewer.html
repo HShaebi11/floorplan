@@ -24,7 +24,7 @@
   --n-ui: #7cc4ff; --n-service: #b49cff; --n-worker: #f0c36b; --n-library: #6fd7a8; --n-feature: #8fb4ff; --n-data: #63d2b8; --n-config: #a3a3a3;
   --n-test: #f19ac7; --n-script: #f5a66b; --n-infra: #f28b8b; --n-external: #e3a6f0; --n-misc: #8b8b8b; --n-dir: #a3a3a3; --n-file: #a3a3a3;
   --n-module: #a3a3a3; --n-symbol: #c7b8ff; --n-route: #7aa7ff; --n-connector: #8b8b8b;
-  --m-GET: #6fd7a8; --m-POST: #7aa7ff; --m-PUT: #f0c36b; --m-PATCH: #c7a3ff; --m-DELETE: #f28b8b; --m-ANY: #a3a3a3;
+  --m-GET: #6fd7a8; --m-POST: #7aa7ff; --m-PUT: #f0c36b; --m-PATCH: #c7a3ff; --m-DELETE: #f28b8b; --m-CALL: #6fcfd9; --m-ANY: #a3a3a3;
   --panel-w: 360px; --pw: calc(var(--panel-w) + 32px); --gutter: 28px;
   color-scheme: dark;
 }
@@ -476,7 +476,7 @@ const KIND_PLAIN = { contains: 'Contains', import: 'Uses', http: 'Web requests',
 const KIND_LABEL = new Proxy({}, { get: (_, k) => (technical() ? KIND_TECH : KIND_PLAIN)[k] || k });
 let technicalFlag = false;
 const technical = () => technicalFlag;
-const METHODS = { GET: 1, POST: 1, PUT: 1, PATCH: 1, DELETE: 1 };
+const METHODS = { GET: 1, POST: 1, PUT: 1, PATCH: 1, DELETE: 1, CALL: 1 };
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem('floorplan:' + k) ?? localStorage.getItem('show-code:' + k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('floorplan:' + k, JSON.stringify(v)); } catch {} } };
 const h = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const fmt = (n) => n >= 10000 ? Math.round(n / 1000) + 'k' : n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);

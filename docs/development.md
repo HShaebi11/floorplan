@@ -77,6 +77,7 @@ The tests use Node's built-in test runner, so there's nothing to install (`npm t
 | `helpers-lib.test.mjs` | globs, file types, command-line flags, fallback names |
 | `secrets.test.mjs` | Health finds secrets, masks them, and ignores placeholders |
 | `health.test.mjs` | which endpoints Health calls open to anyone (FastAPI sample in `fixtures/`) |
+| `firebase.test.mjs` | Firebase Cloud Functions: callables and onRequest functions as endpoints, the website's calls to them, Screens, Health, background functions (React + Firebase sample in `fixtures/`) |
 | `sample-app.test.mjs` | a whole map of a two-repo shop: endpoints, cross-repo requests, Health, offline map, no secret values written, updates |
 | `serve.test.mjs` | the map's server: 127.0.0.1 only, token and same-origin checks, nothing served from outside its folder |
 | `ask.test.mjs` | asking through Claude Code or Codex: which one is used, read-only, follow-ups, sign-in errors (stand-in CLIs in `fixtures/fake-cli/`) |

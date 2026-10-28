@@ -65,11 +65,33 @@ export function resolveRoutes(files) {
     return each.reduce((a, b) => a.filter((x) => b.includes(x)));
   };
 
+  // Firebase deploys a function under the name the functions entry file exports it as, so
+  // `export { approveItem as approve } from './items'` renames it: `${file}|approveItem` -> ['approve']
+  const exportedAs = new Map();
+  for (const f of files) for (const imp of f.imports || []) {
+    if (!imp.exported || !imp.files?.length) continue;
+    for (const [as, orig] of Object.entries(imp.exported)) {
+      if (as === orig) continue;
+      const k = `${imp.files[0]}|${orig}`;
+      exportedAs.set(k, [...(exportedAs.get(k) || []), as]);
+    }
+  }
+
+  // onRequest(app) serves an Express app under the function's name; its own routes are the endpoints
+  const byPath = new Map(files.map((f) => [f.path, f]));
+  const wrapsApp = (file, prefix) => [...mountsTo].some(([to, ms]) => ms.some((m) => m.from === file && m.prefix === prefix) && byPath.get(to)?.routes?.some((r) => r.framework !== 'firebase'));
+
   const routes = [];
   for (const f of files) {
     // Test files define throwaway apps and stub servers; their routes aren't part of the system.
     if (!f.routes?.length || TEST_FILE.test(f.path)) continue;
     for (const r of f.routes) {
+      if (r.framework === 'firebase') {
+        if (r.method === 'ANY' && wrapsApp(f.path, r.path)) continue;
+        // served at its own name, whatever the file's routers are mounted under
+        for (const name of exportedAs.get(`${f.path}|${r.handler}`) || [r.handler]) routes.push({ file: f.path, method: r.method, path: '/' + name, line: r.line, handler: name, framework: 'firebase', ...(r.doc ? { doc: r.doc } : {}) });
+        continue;
+      }
       const defPrefix = (r.var && f.routers?.[r.var]) || '';
       const mw = mountMw(f.path, r.var);
       for (const mp of outerPrefixes(f.path, r.var)) routes.push({ file: f.path, method: r.method, path: joinPath(mp, defPrefix, r.path), line: r.line, ...(r.handler ? { handler: r.handler } : {}), ...(r.doc ? { doc: r.doc } : {}), ...(mw.length ? { mountMw: mw } : {}) });
@@ -123,6 +145,8 @@ export function matchCalls(files, routes) {
       let best = -Infinity, hits = [];
       for (const r of rs) {
         if (r.file === f.path) continue;
+        // a Firebase callable (CALL) is only ever reached through httpsCallable, and only reaches callables
+        if ((call.method === 'CALL') !== (r.method === 'CALL')) continue;
         if (call.method && r.method !== 'ANY' && r.method !== call.method) continue;
         const sc = score(cs, r.segs);
         if (!sc) continue;
