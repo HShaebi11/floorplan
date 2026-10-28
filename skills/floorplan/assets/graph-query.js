@@ -1,5 +1,5 @@
 // floorplan graph queries, shared by the viewer (as page tools for the Claude app) and by
-// floorplan/query.mjs (as a CLI the Claude Code CLI calls). Plain script: no imports, no exports.
+// floorplan/query.mjs (as a CLI that the Claude Code CLI or Codex calls). Plain script: no imports, no exports.
 // Item ids: n:<node id>  f:<file path>  r:<route index>  s:<file path>#<export index>
 
 function createGraphQuery(G) {
@@ -214,7 +214,7 @@ function floorplanFlowInstructions(G, engine) {
 
 function floorplanAskInstructions(G, engine) {
   const tools = engine === 'cli'
-    ? `Query the map with Bash: \`node floorplan/query.mjs overview\`, \`node floorplan/query.mjs find "<words>" [--kind module|file|endpoint|symbol]\`, \`node floorplan/query.mjs show <id>\`, \`node floorplan/query.mjs path <fromId> <toId>\`. Every result is JSON with ids. Start with the map; read or grep source files when you need specifics the map does not have.`
+    ? `Query the map from the shell: \`node floorplan/query.mjs overview\`, \`node floorplan/query.mjs find "<words>" [--kind module|file|endpoint|symbol]\`, \`node floorplan/query.mjs show <id>\`, \`node floorplan/query.mjs path <fromId> <toId>\`. Every result is JSON with ids. Start with the map; read or grep source files when you need specifics the map does not have.`
     : `Use the tools find_items, get_item and dependency_path to explore the map. You cannot read source files, so answer from the map's names, descriptions, endpoints and connections, and say so when a question needs the code itself.`;
   return [
     `You answer questions about the codebase "${G.project.name}" for someone exploring an interactive architecture map of it.`,

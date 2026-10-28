@@ -9,9 +9,10 @@
 
 **See how your app actually fits together.**
 
-Claude reads your codebase and draws an interactive map of it. Every part, file and web request gets a plain-English name, and every connection between them is shown.
+Claude or Codex reads your codebase and draws an interactive map of it. Every part, file and web request gets a plain-English name, and every connection between them is shown.
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757?style=flat-square)](https://code.claude.com/docs/en/overview)
+[![Codex plugin](https://img.shields.io/badge/Codex-plugin-111?style=flat-square)](docs/codex.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/haydenschmitty/floorplan/test.yml?branch=main&style=flat-square&label=tests)](https://github.com/haydenschmitty/floorplan/actions/workflows/test.yml)
 [![Version](https://img.shields.io/badge/version-0.1.5-111?style=flat-square)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-111?style=flat-square)](LICENSE)
@@ -140,7 +141,9 @@ Want to click around yourself? Open the [live demo](https://haydenschmitty.githu
 
 ## Install
 
-You need [Claude Code](https://code.claude.com/docs/en/overview) (the desktop app's Code tab or the CLI) and [Node.js 18+](https://nodejs.org).
+You need [Node.js 18+](https://nodejs.org) and either Claude Code or Codex.
+
+**Claude Code** (the desktop app's Code tab or the CLI):
 
 ```bash
 claude plugin marketplace add haydenschmitty/floorplan
@@ -148,6 +151,21 @@ claude plugin install floorplan@floorplan
 ```
 
 Start a new session and it's ready. Installing the Claude Code CLI is recommended even if you use the desktop app, because it lets the map's Ask bar read your real code. More in [Getting started](docs/getting-started.md).
+
+**Codex** (signed in with ChatGPT). No terminal needed:
+
+1. In the Codex app, open **Plugins** and choose **Add a marketplace**.
+2. For **Source**, enter `haydenschmitty/floorplan` and click **Add marketplace**.
+3. Find **Floorplan** and click **+** to install it.
+
+Or, from a terminal:
+
+```bash
+codex plugin marketplace add haydenschmitty/floorplan
+codex plugin add floorplan@floorplan
+```
+
+Start a new chat and ask for a floorplan, or type `$floorplan`. The map's Ask bar runs on your own Codex sign-in, with no API key. More in [Floorplan in Codex](docs/codex.md).
 
 ## Quick start
 
@@ -197,7 +215,7 @@ A `floorplan/` folder holding the map, plus a short section in `CLAUDE.local.md`
 
 - The scan, the map and its small local server all run on your computer. The server only accepts connections from your own machine.
 - No dependencies or install scripts, and the map works offline: its layout engine and fonts are built in.
-- Questions on the map go to your own Claude account, through the Claude Code CLI.
+- Questions on the map go to your own account, through the Claude Code CLI or Codex, which can read your code but not change it.
 - The Health check never stores or shows secret values, only where they are.
 - No analytics or tracking. The map may ask once whether you'd like an email when Floorplan Cloud launches. Nothing is sent unless you sign up, and then only your email and "just me" or "with my team".
 

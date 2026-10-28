@@ -2,6 +2,8 @@
 
 Prefer to watch? The [walkthrough video](https://youtu.be/NTUUzC7L_NQ) covers installing Floorplan and touring a finished map.
 
+Using Codex? See [Floorplan in Codex](codex.md) for installing; the rest of this guide applies too.
+
 ## What you need
 
 - **Claude Code**: the Code tab in the Claude desktop app, or the Claude Code CLI in a terminal.

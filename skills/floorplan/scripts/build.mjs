@@ -12,10 +12,12 @@ import { fallbackFileName, fallbackRouteName, routeKey } from './lib/names.mjs';
 import { buildHealth } from './lib/health.mjs';
 import { buildScreens } from './lib/screens.mjs';
 import { writeClaudeMd } from './lib/claudemd.mjs';
+import { detectAgent } from './lib/agent.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(HERE, '..');
 const args = parseArgs(process.argv.slice(2));
+const agent = detectAgent(args);
 const root = path.resolve(args._[0] || '.');
 const outDir = path.resolve(args.out || mapDir(root));
 const archFile = path.resolve(args.arch || path.join(outDir, 'architecture.json'));
@@ -367,7 +369,7 @@ const graph = {
   schema: 'floorplan/graph@1',
   meta: {
     generatedAt: new Date().toISOString(), scanAt: scan.generatedAt, rootName: scan.rootName, root: scan.root,
-    audience,
+    audience, agent,
     repos: scan.repos.map(({ path: p, name, branch, head, remote }) => ({ path: p, name, branch, head, remote })),
     counts: { files: included.length, loc: included.reduce((s, f) => s + f.loc, 0), unassigned: unassigned.length },
   },
@@ -434,9 +436,9 @@ const uiScripts = fs.existsSync(uiDir) ? fs.readdirSync(uiDir).filter((n) => n.e
 const html = page(graph);
 fs.writeFileSync(path.join(outDir, 'index.html'), html);
 // --artifact: a copy to publish to the Claude app, without this machine's absolute path (editor links)
-if (args.artifact) fs.writeFileSync(path.join(outDir, 'artifact.html'), page({ ...graph, meta: { ...graph.meta, root: null } }));
-// Self-contained helpers next to the map: ask questions through the Claude Code CLI (serve.mjs)
-// and the graph lookups it hands to Claude (query.mjs). They need only Node, not this skill.
+if (args.artifact) fs.writeFileSync(path.join(outDir, 'artifact.html'), page({ ...graph, meta: { ...graph.meta, root: null, agent: 'claude' } }));
+// Self-contained helpers next to the map: ask questions through the Claude Code CLI or Codex (serve.mjs)
+// and the graph lookups it hands to them (query.mjs). They need only Node, not this skill.
 fs.writeFileSync(path.join(outDir, 'query.mjs'), `${graphQuery}
 // ---- cli ----
 ${fs.readFileSync(path.join(SKILL_DIR, 'assets', 'query-cli.mjs'), 'utf8')}`);
@@ -454,8 +456,10 @@ if (graph.screens?.length) report.push(`SCREENS  ${graph.screens.length} detecte
 report.push(graph.recent
   ? `RECENT WORK  ${graph.recent.items.length} card(s) highlighted across ${graph.recent.tasks.length} task(s)`
   : `RECENT WORK  none highlighted${fs.existsSync(recentFile) ? '' : ' (no recent-work.json)'}`);
-// point future Claude Code sessions in this project at the map
-if (!args['no-claude-md']) report.push(`CLAUDE.LOCAL.MD  ${writeClaudeMd(root, outDir)}`);
+// point future Claude Code sessions in this project at the map. Codex has no personal, uncommitted
+// equivalent (AGENTS.md is shared with the team), so a map built by Codex leaves the project's notes alone.
+if (agent === 'codex') report.push('AGENT  Codex: questions on the map run through Codex');
+else if (!args['no-claude-md']) report.push(`CLAUDE.LOCAL.MD  ${writeClaudeMd(root, outDir)}`);
 report.push(trackedWarning ? `GIT  ! ${trackedWarning}` : 'GIT  floorplan/ is kept out of git (it ignores itself)');
 report.push('');
 report.push(`✓ wrote ${path.relative(root, path.join(outDir, 'index.html'))} (${fmtNum(Math.round(html.length / 1024))} KB) and graph.json`);

@@ -12,6 +12,18 @@ The map is open without a way to ask questions. Either:
 node floorplan/serve.mjs --claude /path/to/claude
 ```
 
+### Codex: the Ask bar says it needs Codex
+The map's server looks for `codex` on your PATH and, on Windows, for the CLI that comes with the Codex desktop app. Install the [Codex CLI](https://developers.openai.com/codex/cli), or point the server at yours:
+
+```bash
+node floorplan/serve.mjs --codex /path/to/codex
+```
+
+If it says Codex isn't signed in, open the Codex app (or run `codex login`) and sign in with ChatGPT. More in [Floorplan in Codex](codex.md).
+
+### Codex: the map didn't open, or Ask stopped working after Codex opened it
+Codex runs commands in a sandbox, and the map's server needs to keep running and reach the network. Allow the server to run outside the sandbox when Codex asks, or run `node floorplan/serve.mjs` yourself from the project folder.
+
 ### `node` isn't recognized
 Install [Node.js](https://nodejs.org) 18 or newer, then start a new session so Claude Code picks it up.
 

@@ -2,7 +2,7 @@
 // Show the map to the user after a build or refresh. Reuses this map's server if it's running (open tabs
 // have already reloaded themselves), restarts it if serve.mjs changed, otherwise starts it in the
 // background and opens a browser tab. Prints the URL and how to stop it.
-// usage: node open.mjs [root] [--no-open] [--port N] [--model M] [--claude PATH]
+// usage: node open.mjs [root] [--no-open] [--port N] [--engine claude|codex] [--model M] [--claude PATH] [--codex PATH]
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -51,7 +51,7 @@ if (status && status.hash !== hash) {
 }
 
 if (!status) {
-  const pass = ['port', 'model', 'claude'].flatMap((k) => (args[k] ? ['--' + k, String(args[k])] : []));
+  const pass = ['port', 'engine', 'model', 'claude', 'codex'].flatMap((k) => (args[k] ? ['--' + k, String(args[k])] : []));
   if (!args.port && s?.port) pass.push('--port', String(s.port)); // keep the address people have open
   fs.mkdirSync(path.dirname(stateFile), { recursive: true });
   const log = fs.openSync(path.join(dir, '.cache', 'server.log'), 'w');
@@ -59,7 +59,7 @@ if (!status) {
   spawn(process.execPath, [serveFile, '--no-open', '--idle-exit', String(IDLE_MINUTES), ...pass], {
     cwd: root, detached: true, stdio: ['ignore', log, log], windowsHide: true,
   }).unref();
-  // finding the Claude CLI takes a few seconds before the server listens
+  // finding the Claude Code or Codex CLI takes a few seconds before the server listens
   for (let i = 0; i < 100; i++) {
     await sleep(200);
     const n = readState();
@@ -80,7 +80,11 @@ else if (args['no-open']) shown = 'not opened in a browser (--no-open): open the
 else shown = openBrowser(s.url) ? 'opened in the browser' : 'could not open a browser: open the URL yourself';
 
 console.log(`FLOORPLAN  ${s.url}  (${shown})`);
+const CLI = {
+  claude: { name: 'the Claude Code CLI', docs: 'https://docs.claude.com/en/docs/claude-code' },
+  codex: { name: 'Codex', docs: 'https://developers.openai.com/codex' },
+};
 console.log(health?.cli
-  ? `ASK  works: questions run through the Claude Code CLI${health.version ? ' ' + health.version : ''}`
-  : 'ASK  needs the Claude Code CLI, which was not found; the map itself works (https://docs.claude.com/en/docs/claude-code)');
+  ? `ASK  works: questions run through ${CLI[health.engine]?.name || 'the Claude Code CLI'}${health.version ? ' (' + health.version + ')' : ''}`
+  : `ASK  needs ${(CLI[health?.want] || CLI.claude).name}, which was not found; the map itself works (${(CLI[health?.want] || CLI.claude).docs})`);
 console.log(`SERVER  runs in the background, updates open tabs when the map is rebuilt, and stops ${IDLE_MINUTES / 60} hours after the last tab closes. Stop it now: node ${rel}/serve.mjs --stop`);

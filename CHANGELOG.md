@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Codex support:** Floorplan now installs as a Codex plugin too (`codex plugin marketplace add haydenschmitty/floorplan`), with the same skill, map and Health check. In Codex, the map's Ask bar runs your own Codex on your ChatGPT sign-in, read-only and kept out of your Codex history, and "Fix with Codex" prompts are ready to paste. The map server uses whichever agent built the map, and falls back to the other one. See [Floorplan in Codex](docs/codex.md).
+
 ## 0.1.5 (2026-10-28)
 
 - **Fewer false Health alarms on FastAPI:** a dependency shortcut whose own name says it checks the caller, like `AdminAccess = Annotated[dict, Depends(check)]`, now counts as a login check even when its function has a plain name.

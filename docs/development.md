@@ -7,8 +7,14 @@
   plugin.json          the plugin: name, version, author
   marketplace.json     this repo as its own one-plugin marketplace
   icon.png
+.codex-plugin/
+  plugin.json          the same plugin for Codex (same skill, same version)
+  icon.png
+.agents/plugins/
+  marketplace.json     this repo as a Codex marketplace
 skills/floorplan/
-  SKILL.md             the workflow Claude follows
+  SKILL.md             the workflow Claude and Codex follow
+  agents/openai.yaml   how Codex lists the skill
   references/          formats and style guides Claude reads while working
     schema.md                architecture.json and recent-work.json
     choosing-boundaries.md   how to carve a codebase into a good map
@@ -21,12 +27,12 @@ skills/floorplan/
     refresh.mjs    incremental update: re-scan, carry over, flag changes, rebuild
     recent.mjs     facts for marking recent work
     open.mjs       start or reuse the map's server, and open the browser
-    lib/           extraction, import resolution, route matching, Health, screens, helpers
+    lib/           extraction, import resolution, route matching, Health, screens, which agent is running, helpers
   assets/
     viewer.html    the map (template the build fills in)
     ui/            viewer extensions: glossary, Health, recent work, screens, tour, waitlist card
     graph-query.js shared map lookups (viewer, query.mjs, Ask instructions)
-    serve.mjs      copied into each project's floorplan/ folder
+    serve.mjs      copied into each project's floorplan/ folder; answers through Claude Code or Codex
     query-cli.mjs  becomes floorplan/query.mjs
     logo.png, favicon.png
     vendor/        bundled layout engine (elkjs) and fonts, with their licenses
@@ -44,6 +50,8 @@ claude plugin install floorplan@floorplan
 ```
 
 A plugin installed from a local folder runs straight from it, so edits apply in the next session with no update step.
+
+To try it in Codex, see [Trying a working copy](codex.md#trying-a-working-copy). Codex copies a local plugin when you add it, so run `codex plugin add floorplan@floorplan` again after each change. `--agent claude|codex` on build.mjs (or `FLOORPLAN_AGENT`) and `--engine claude|codex` on serve.mjs let you try either agent's map from anywhere.
 
 The scripts also run on their own, which is the fastest way to work on them:
 
@@ -71,7 +79,9 @@ The tests use Node's built-in test runner, so there's nothing to install (`npm t
 | `health.test.mjs` | which endpoints Health calls open to anyone (FastAPI sample in `fixtures/`) |
 | `sample-app.test.mjs` | a whole map of a two-repo shop: endpoints, cross-repo requests, Health, offline map, no secret values written, updates |
 | `serve.test.mjs` | the map's server: 127.0.0.1 only, token and same-origin checks, nothing served from outside its folder |
-| `release.test.mjs` | the version agrees across `plugin.json`, the README badge and the changelog |
+| `ask.test.mjs` | asking through Claude Code or Codex: which one is used, read-only, follow-ups, sign-in errors (stand-in CLIs in `fixtures/fake-cli/`) |
+| `agents.test.mjs` | telling Claude Code from Codex, and what a map built by each records and writes |
+| `release.test.mjs` | the version agrees across both plugins' `plugin.json`, the README badge and the changelog |
 
 Sample projects are written to a temp folder by `helpers.mjs` (`shopApp()`) or copied from `tests/fixtures/`. Anything secret-looking is assembled at runtime, so no real-looking key is ever committed.
 
@@ -129,7 +139,7 @@ Files in `skills/floorplan/assets/ui/` are inlined into every map, in name order
    npm test
    claude plugin validate . --profile directory
    ```
-2. Bump `version` in `.claude-plugin/plugin.json` and the version badge in `README.md`.
+2. Bump `version` in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, and the version badge in `README.md`.
 3. Rename `## Unreleased` in `CHANGELOG.md` to `## X.Y.Z (YYYY-MM-DD)`.
 4. Commit as `Floorplan X.Y.Z: <one-line headline>` and push `main`.
 5. Tag and push the tag. This also checks that `plugin.json` and the marketplace entry agree:
