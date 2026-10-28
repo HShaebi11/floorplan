@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { discover, gitFiles, gitInfo, classify, toPosix, parseArgs, fmtNum, HARD_IGNORE_DIRS, MAP_DIR, LEGACY_MAP_DIR, isMapDir, mapDir, keepOutOfGit } from './lib/common.mjs';
-import { extract } from './lib/extract.mjs';
+import { extract, callableCallsVia } from './lib/extract.mjs';
 import { findIssues } from './lib/health.mjs';
 import { findScreens } from './lib/screens.mjs';
 import { createResolver } from './lib/resolve.mjs';
@@ -126,6 +126,17 @@ for (const e of edges) {
   else edgeMap.set(k, { ...e, count: 1 });
 }
 
+// Firebase callable helpers used from other files: `import { callFunction } from '../lib/firebase'`,
+// then callFunction('approveItem', data) calls the approveItem function
+const wrappers = new Map(files.filter((f) => f.callableWrappers).map((f) => [f.path, new Set(f.callableWrappers)]));
+if (wrappers.size) for (const f of files) {
+  const via = (f.imports || []).flatMap((imp) => Object.entries(imp.locals || {}).filter(([, orig]) => imp.files?.some((t) => wrappers.get(t)?.has(orig))).map(([local]) => local));
+  if (!via.length) continue;
+  let src;
+  try { src = fs.readFileSync(path.join(root, f.path), 'utf8'); } catch { continue; }
+  for (const local of via) f.calls = [...(f.calls || []), ...callableCallsVia(src, local)];
+}
+
 // ---------- 4. routes and HTTP calls ----------
 const routes = resolveRoutes(files);
 const http = matchCalls(files, routes);
@@ -148,6 +159,7 @@ const scan = {
     ...(f.tooLarge ? { tooLarge: true } : {}),
     ...(f.issues ? { issues: f.issues } : {}),
     ...(f.screens ? { screens: f.screens } : {}),
+    ...(f.triggers ? { triggers: f.triggers } : {}),
   })),
   edges: [...edgeMap.values()].map(({ from, to, names, count, dynamic }) => ({ from, to, ...(names.length ? { names } : {}), ...(count > 1 ? { count } : {}), ...(dynamic ? { dynamic } : {}) })),
   externals: [...externals.values()].map((e) => ({ id: `${e.eco}:${e.name}`, eco: e.eco, name: e.name, imports: e.count, files: e.files.size })),
@@ -250,6 +262,20 @@ for (const h of http) {
 }
 for (const [k, v] of [...httpDir.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)) line(`  ${String(v).padStart(5)}  ${k}`);
 line();
+
+// Firebase Cloud Functions: endpoints are already in the HTTP line; background ones need a place on the map
+const fbRoutes = files.flatMap((f) => (f.routes || []).filter((r) => r.framework === 'firebase'));
+const triggers = files.flatMap((f) => (f.triggers || []).map((t) => ({ ...t, file: f.path })));
+if (fbRoutes.length || triggers.length) {
+  const callable = fbRoutes.filter((r) => r.method === 'CALL').length;
+  line(`FIREBASE FUNCTIONS  ${callable} callable, ${fbRoutes.length - callable} onRequest, ${triggers.length} background`);
+  if (triggers.length) {
+    line('  background (schedules and triggers; place them in a worker node):');
+    for (const t of triggers.slice(0, 20)) line(`    ${t.name}  ${t.on}${t.what ? ` "${t.what}"` : ''}  ${t.file}:${t.line}`);
+    if (triggers.length > 20) line(`    … ${triggers.length - 20} more`);
+  }
+  line();
+}
 
 const topExt = scan.externals.sort((a, b) => b.files - a.files).slice(0, 25);
 line(`EXTERNAL PACKAGES (top ${topExt.length} by importing files)`);
