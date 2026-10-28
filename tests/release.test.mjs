@@ -20,6 +20,22 @@ test('the marketplace lists this plugin, from this repo', () => {
   assert.equal(entry.source, './');
 });
 
+test('the Codex plugin matches the Claude Code plugin and points at the same skill', () => {
+  const codex = readJson(path.join(REPO, '.codex-plugin', 'plugin.json'));
+  assert.equal(codex.name, plugin.name);
+  assert.equal(codex.version, plugin.version, '.codex-plugin/plugin.json version');
+  assert.equal(codex.skills, './skills/');
+  assert.ok(fs.existsSync(path.join(REPO, 'skills', plugin.name, 'SKILL.md')));
+  for (const k of ['composerIcon', 'logo']) assert.ok(fs.existsSync(path.join(REPO, codex.interface[k])), `${k}: ${codex.interface[k]}`);
+});
+
+test('the Codex marketplace lists this plugin, from this repo', () => {
+  const codexMarket = readJson(path.join(REPO, '.agents', 'plugins', 'marketplace.json'));
+  const entry = codexMarket.plugins.find((p) => p.name === plugin.name);
+  assert.ok(entry, `.agents/plugins/marketplace.json lists ${plugin.name}`);
+  assert.deepEqual(entry.source, { source: 'local', path: './' });
+});
+
 test('the README version badge matches plugin.json', () => {
   assert.match(read('README.md'), new RegExp(`badge/version-${plugin.version.replaceAll('.', '\\.')}-`));
 });

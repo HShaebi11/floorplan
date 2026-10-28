@@ -5,10 +5,11 @@
 | Part | Where it runs | What it sends |
 |---|---|---|
 | Scan, build, updates | your computer (Node.js) | nothing |
-| Writing names and descriptions | Claude, through your Claude Code session | the files Claude reads, the same as any Claude Code task |
+| Writing names and descriptions | Claude or Codex, through your session | the files it reads, the same as any other task you give it |
 | The map | your browser | nothing. Its layout engine and fonts are bundled into the file, so it works offline |
 | The map's server (`serve.mjs`) | your computer, listening on `127.0.0.1` only | nothing on its own |
 | Asking questions (Claude Code CLI) | a `claude -p` session on your computer, with your account | your question, and the files Claude chooses to read |
+| Asking questions (Codex) | a `codex exec` run on your computer, with your ChatGPT sign-in, not saved to your Codex history | your question, and the files Codex chooses to read |
 | Asking questions (Claude app) | your claude.ai account | the map (names, descriptions, structure), never your source code. Claude asks before publishing it there |
 | Floorplan Cloud waitlist (only if you sign up) | the map's server, to Floorplan's waitlist service | the email you typed or chose, and "just me" or "with my team". See [below](#floorplan-cloud-waitlist) |
 
@@ -21,6 +22,7 @@ The layout engine ([elkjs](https://github.com/kieler/elkjs) 0.9.3, EPL-2.0) and 
 - It listens on `127.0.0.1` only, so other machines on your network can't reach it.
 - Every start creates a random token, which only the map page it serves receives. Asking questions and saving flows require that token, and those requests are refused when they come from another website.
 - Questions run Claude with **read-only** tools: reading files, searching, and the map's own lookup script. It can't edit files or run other commands.
+- With Codex, questions run in Codex's **read-only** sandbox: it can read and search, but not write files.
 - It stops by itself two hours after the last tab closes, and `node floorplan/serve.mjs --stop` stops it immediately.
 
 ## Floorplan Cloud waitlist
