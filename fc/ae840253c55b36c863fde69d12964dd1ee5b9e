@@ -1,0 +1,43 @@
+CHANGELOG.md
+  s_6e226af73fa1f1::t_07c6298d27902b 3-6
+README.md
+  s_6e226af73fa1f1::t_ac4e6ab239bfde 236
+docs/README.md
+  s_6e226af73fa1f1::t_0bf4c8de6d5649 7
+docs/acp.md
+  s_6e226af73fa1f1::t_8fa6d23d9c0d50 1-31
+docs/development.md
+  s_6e226af73fa1f1::t_980a72bb1eaed9 54
+skills/floorplan/SKILL.md
+  s_6e226af73fa1f1::t_c54f150c1ef923 116
+skills/floorplan/assets/serve.mjs
+  s_6e226af73fa1f1::t_c9023a4ac7e21d 3-4,6-7,12-14,30-34,46-48,88-179,187,189-190,194,196-208,216-220,223-226,234,277-278,280,405-601,606-613,620,643-677,695-706,752,780-784
+skills/floorplan/assets/ui/50-cloud.js
+  s_6e226af73fa1f1::t_df9e1d03be5876 72
+skills/floorplan/assets/viewer.html
+  s_6e226af73fa1f1::t_91e410fca33a7b 334-346,429,471-488,1594,1635,1686-1699,1736-1780
+skills/floorplan/scripts/open.mjs
+  s_6e226af73fa1f1::t_de1fc63a72624f 5,54,86
+tests/ask.test.mjs
+  s_6e226af73fa1f1::t_8df27693f70c0b 9,19-20,22,68,133-252
+tests/fixtures/fake-cli/fake-acp.mjs
+  s_6e226af73fa1f1::t_d7a968d78dda09 1-98
+tests/serve.test.mjs
+  s_6e226af73fa1f1::t_9182eafbaae092 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fcae840253c55b36c863fde69d12964dd1ee5b9e",
+  "prompts": {},
+  "sessions": {
+    "s_6e226af73fa1f1": {
+      "agent_id": {
+        "tool": "devin",
+        "id": "s_6e226af73fa1f1",
+        "model": "unknown"
+      },
+      "human_author": "Hamza <125047677+HShaebi11@users.noreply.github.com>"
+    }
+  }
+}
