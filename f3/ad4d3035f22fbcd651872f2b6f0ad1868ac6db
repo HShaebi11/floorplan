@@ -1,0 +1,61 @@
+CHANGELOG.md
+  s_035d76daee472d::t_ece3b94958ca6c 6
+skills/floorplan/assets/viewer.html
+  s_035d76daee472d::t_fd000d18991de4 2128-2133
+  s_035d76daee472d::t_de1893b70bf3d6 2437
+  s_035d76daee472d::t_63d2814d3f7bbc 428-429
+  s_035d76daee472d::t_3ec24072fd5f39 416-427
+  s_035d76daee472d::t_62518358745eb7 1873
+  s_035d76daee472d::t_512a5c8defade5 1951
+  s_035d76daee472d::t_150290c815b8c3 588
+  s_035d76daee472d::t_60a7458b3f2fb9 1832
+  s_035d76daee472d::t_e4b14649a7fed6 1924-1937
+  s_035d76daee472d::t_b0cd6b441382b4 1975-1985,1987-2034
+  s_035d76daee472d::t_84af3772f2b71c 1986
+  s_035d76daee472d::t_574c3e64bd1da9 630-643
+docs/acp.md
+  s_035d76daee472d::t_966f7672d4cc54 20-29
+docs/privacy-and-security.md
+  s_035d76daee472d::t_bc41b259ed980a 60
+docs/using-the-map.md
+  s_035d76daee472d::t_e448a702a7775b 112
+tests/blueprint-change.test.mjs
+  s_035d76daee472d::t_ba1120118580ac 32,34-40
+tests/ask.test.mjs
+  s_035d76daee472d::t_3e17c5d19a644b 266-279,282-283,289-352
+  s_035d76daee472d::t_ff09bf84148a91 280-281,284-288
+  s_035d76daee472d::t_b437d19b3366c2 260-261
+docs/is-it-safe.md
+  s_035d76daee472d::t_b8a5349b030695 33
+skills/floorplan/SKILL.md
+  s_035d76daee472d::t_d0689a24111a61 138
+docs/troubleshooting.md
+  s_035d76daee472d::t_b6a722b65ec728 51
+skills/floorplan/assets/serve.mjs
+  s_035d76daee472d::t_be718a591c39e5 336-341,344-348
+  s_035d76daee472d::t_2fc6b51d0fbda5 356
+  s_035d76daee472d::t_2175cddd26b817 15-18
+  s_035d76daee472d::t_5ba18881e6b5b9 287-288,291-329
+  s_035d76daee472d::t_3885892e57dddc 864-939
+  s_035d76daee472d::t_bc0d872fa40d9b 960-972
+  s_035d76daee472d::t_f26d5ca19ff97c 108-110
+  s_035d76daee472d::t_41772baa238da0 240-241,243-244,258-259
+docs/development.md
+  s_035d76daee472d::t_761f7fbe84e44c 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3ad4d3035f22fbcd651872f2b6f0ad1868ac6db",
+  "prompts": {},
+  "sessions": {
+    "s_035d76daee472d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f352ea34-e297-472c-bd58-a16d005e04df",
+        "model": "grok-4.7"
+      },
+      "human_author": "Hamza <125047677+HShaebi11@users.noreply.github.com>"
+    }
+  }
+}
