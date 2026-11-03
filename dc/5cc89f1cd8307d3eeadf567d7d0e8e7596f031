@@ -1,0 +1,80 @@
+docs/using-the-map.md
+  s_3dd386cf828a2e::t_9af7627aa69e36 109
+CHANGELOG.md
+  s_3dd386cf828a2e::t_832c3028075c51 3-6
+tests/false-positives.test.mjs
+  s_3dd386cf828a2e::t_dafcf9f554ee4a 149
+skills/floorplan/assets/ui/50-cloud.js
+  s_3dd386cf828a2e::t_1d43121e6f0a4c 72
+docs/project-files.md
+  s_3dd386cf828a2e::t_7a2c8642f325e0 17
+tests/fixtures/fake-cli/fake-acp.mjs
+  s_3dd386cf828a2e::t_de61e7d61f4b45 1-108
+tests/serve.test.mjs
+  s_3dd386cf828a2e::t_dcb74f1a19b2c6 18
+skills/floorplan/assets/serve.mjs
+  s_3dd386cf828a2e::t_b057c32f3316ae 637-638
+  s_3dd386cf828a2e::t_97879bb93b3795 3-4,6-7,11-15
+  s_3dd386cf828a2e::t_53df432a8c2282 105-107
+  s_3dd386cf828a2e::t_beb50226912627 287
+  s_3dd386cf828a2e::t_37a51adec14b1a 296
+  s_3dd386cf828a2e::t_a4d0852444b6d3 594
+  s_3dd386cf828a2e::t_04306ce85438e5 948-951
+  s_3dd386cf828a2e::t_088d7bb75a9a3f 150-253,257-258,274-277
+  s_3dd386cf828a2e::t_46f4e39c595cdd 300
+  s_3dd386cf828a2e::t_6a615a527cf51b 635
+  s_3dd386cf828a2e::t_ec1699020bbf96 651-652
+  s_3dd386cf828a2e::t_a255c9bc05147f 483-593,595-634,636,639-650,653-655,661,676-689,694
+  s_3dd386cf828a2e::t_32f81218ede7d9 278
+docs/acp.md
+  s_3dd386cf828a2e::t_6b9f488cb07c18 1-42
+tests/ask.test.mjs
+  s_3dd386cf828a2e::t_604be74b619934 15-19,21,24,26
+  s_3dd386cf828a2e::t_79871acb266e9c 232,238,242
+  s_3dd386cf828a2e::t_f415738009313c 153-231,233-237,239-241,243-263
+skills/floorplan/scripts/open.mjs
+  s_3dd386cf828a2e::t_46a92ded43bc6b 54
+  s_3dd386cf828a2e::t_db78cfdb0bef3e 5
+  s_3dd386cf828a2e::t_7e01b4735f9d8e 86
+skills/floorplan/SKILL.md
+  s_3dd386cf828a2e::t_464c414d4a9ab7 131
+  s_3dd386cf828a2e::t_7f4d4125f09aa0 137-138
+docs/is-it-safe.md
+  s_3dd386cf828a2e::t_f654a2e52030b4 23
+  s_3dd386cf828a2e::t_01765eacc5328c 30,32-33
+skills/floorplan/assets/viewer.html
+  s_3dd386cf828a2e::t_6e6474e6170d94 617-618,621-625
+  s_3dd386cf828a2e::t_0f377df089f042 2015
+docs/README.md
+  s_3dd386cf828a2e::t_5b0eb3799e0b1e 7
+docs/development.md
+  s_3dd386cf828a2e::t_22e0eb9e9d517d 97
+  s_3dd386cf828a2e::t_7b0d6aff9da933 125
+  s_3dd386cf828a2e::t_30016c27229e47 58
+README.md
+  s_3dd386cf828a2e::t_4202fcbf5378be 253
+  s_3dd386cf828a2e::t_5f0b87541a9d07 265
+docs/privacy-and-security.md
+  s_3dd386cf828a2e::t_42303767600424 15
+  s_3dd386cf828a2e::t_8b592438cd5982 32
+docs/troubleshooting.md
+  s_3dd386cf828a2e::t_0cd4b8a93e6afc 51
+tests/export.test.mjs
+  s_3dd386cf828a2e::t_47414534c54eac 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc5cc89f1cd8307d3eeadf567d7d0e8e7596f031",
+  "prompts": {},
+  "sessions": {
+    "s_3dd386cf828a2e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cd1e339c-db87-4f25-b952-e42492b73581",
+        "model": "grok-4.7"
+      },
+      "human_author": "Hamza <125047677+HShaebi11@users.noreply.github.com>"
+    }
+  }
+}
